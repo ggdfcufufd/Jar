@@ -1,47 +1,17 @@
-name: Build executable JAR
+plugins {
+    id("java")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+}
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+group = "org.example"
+version = "1.0.0"
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: read
+repositories {
+    mavenCentral()
+}
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      - name: Build shadow JAR
-        run: ./gradlew shadowJar
-
-      - name: Upload JAR as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: calculator
-          path: build/libs/*.jar
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          name: Release ${{ github.run_number }}
-          files: build/libs/*.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.example.Main"
+    }
+}
